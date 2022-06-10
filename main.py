@@ -1,6 +1,8 @@
+import json
+import os
 import requests
 from bs4 import BeautifulSoup
-import pandas
+import pandas as pd
 
 url = 'https://www.indeed.com/jobs?q=web&l=Texas&start=10&vjk=f13c741454817e27'
 
@@ -40,7 +42,7 @@ def get_data():
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
-    contents = soup.find_all('div', 'slider_container css-11g4k3a eu4oa1w0')
+    contents = soup.find_all('table', 'jobCard_mainContent big6_visualChanges')
 
     job_list = []
     base_url = 'https://www.indeed.com/'
@@ -73,6 +75,37 @@ def get_data():
             job_type = content.find('div', 'attribute_snippet').text.strip()
         except:
             job_type = 'none'
+
+        # sorting data
+        data_dict = {
+            'title': title,
+            'company_name': company_name,
+            'company_location': company_location,
+            'company_link': company_link,
+            'company_salary': company_salary,
+            'job_type': job_type
+        }
+
+        job_list.append(data_dict)
+    print('total data ', len(job_list))
+
+    # make directory
+    try:
+        os.mkdir('json_result')
+        os.mkdir('file_result')
+    except FileExistsError:
+        pass
+
+    # writing json
+    with open('json_result/result.json', 'w+') as json_data:
+        json.dump(job_list, json_data)
+        print('json created')
+
+    # create csv & excel
+    df = pd.DataFrame(job_list)
+    df.to_csv('file_result/csv_indeed.csv', index=False)
+    df.to_excel('file_result/excel_indeed.xlsx', index=False)
+    print('file created')
 
 
 def run():
