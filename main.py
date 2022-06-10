@@ -6,16 +6,16 @@ import pandas as pd
 
 url = 'https://www.indeed.com/jobs?'
 
+headers = {
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0'
+}
+
 
 def get_total_pages(query, location):
     params = {
         'q': query,
         'l': location,
         'vjk': '455282569a65db72'
-    }
-
-    headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0'
     }
 
     # scraping total pages
@@ -39,9 +39,6 @@ def get_data(query, location, start):
         'l': location,
         'start': start,
         'vjk': '455282569a65db72'
-    }
-    headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0'
     }
 
     # scraping proccess
@@ -99,18 +96,22 @@ def get_data(query, location, start):
 def generate_file(dataframe, filename, location):
     # create csv & excel
     df = pd.DataFrame(dataframe)
-    df.to_csv(f'reports/{filename}_{location}_indeed.csv', index=False)
-    df.to_excel(f'reports/{filename}_{location}_indeed.xlsx', index=False)
+    df.to_csv(f'reports/{filename}_{location}.csv', index=False)
+    df.to_excel(f'reports/{filename}_{location}.xlsx', index=False)
     print(f'File {filename}.csv and {filename}.xlsx successfully created')
 
 
 def run():
+    # input
     query = input('Input query : ')
     location = input('Input location : ')
-    total = get_total_pages(query, location)
+
+    get_total_pages(query, location)
 
     counter = 0
     final_result = []
+
+    # looping to get all items
     for page in range(total):
         page += 1
         counter += 10
@@ -126,7 +127,7 @@ def run():
     # writing json
     with open(f'reports/{query}_{location}.json', 'w+') as json_data:
         json.dump(final_result, json_data)
-        print('JSON created')
+        print('JSON successfully created')
 
     # generate file
     generate_file(final_result, query, location)
