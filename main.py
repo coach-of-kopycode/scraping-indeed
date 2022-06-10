@@ -4,12 +4,14 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-url = 'https://www.indeed.com/jobs?q=web&l=Texas&start=10&vjk=f13c741454817e27'
+url = 'https://www.indeed.com/jobs?'
 
 
-def get_total_pages():
+def get_total_pages(query, location):
     params = {
-
+        'q': query,
+        'l': location,
+        'vjk': '455282569a65db72'
     }
 
     headers = {
@@ -19,28 +21,31 @@ def get_total_pages():
     # scraping total pages
     total_pages = []
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, params=params, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     pagination = soup.find('ul', 'pagination-list')
-    pages = pagination.find_all('li')
+    pages = pagination.findAll('li')
 
     for page in pages:
         total_pages.append(page.text)
-
     total = int(max(total_pages))
+
     return total
 
 
-def get_data():
+def get_data(query, location, start):
     params = {
-
+        'q': query,
+        'l': location,
+        'start': start,
+        'vjk': '455282569a65db72'
     }
-
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0'
     }
 
-    response = requests.get(url, headers=headers)
+    # scraping proccess
+    response = requests.get(url, params=params, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     contents = soup.find_all('table', 'jobCard_mainContent big6_visualChanges')
 
@@ -87,30 +92,45 @@ def get_data():
         }
 
         job_list.append(data_dict)
-    print('total data ', len(job_list))
 
-    # make directory
+    return job_list
+
+
+def generate_file(dataframe, filename, location):
+    # create csv & excel
+    df = pd.DataFrame(dataframe)
+    df.to_csv(f'reports/{filename}_{location}_indeed.csv', index=False)
+    df.to_excel(f'reports/{filename}_{location}_indeed.xlsx', index=False)
+    print(f'File {filename}.csv and {filename}.xlsx successfully created')
+
+
+def run():
+    query = input('Input query : ')
+    location = input('Input location : ')
+    total = get_total_pages(query, location)
+
+    counter = 0
+    final_result = []
+    for page in range(total):
+        page += 1
+        counter += 10
+        final_result += get_data(query, location, counter)
+        print('Scraping page: ', page)
+
+    # create directory
     try:
-        os.mkdir('json_result')
-        os.mkdir('file_result')
+        os.mkdir('reports')
     except FileExistsError:
         pass
 
     # writing json
-    with open('json_result/result.json', 'w+') as json_data:
-        json.dump(job_list, json_data)
-        print('json created')
+    with open(f'reports/{query}_{location}.json', 'w+') as json_data:
+        json.dump(final_result, json_data)
+        print('JSON created')
 
-    # create csv & excel
-    df = pd.DataFrame(job_list)
-    df.to_csv('file_result/csv_indeed.csv', index=False)
-    df.to_excel('file_result/excel_indeed.xlsx', index=False)
-    print('file created')
-
-
-def run():
-    pass
+    # generate file
+    generate_file(final_result, query, location)
 
 
 if __name__ == '__main__':
-    get_data()
+    run()
