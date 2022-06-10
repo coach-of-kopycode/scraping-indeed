@@ -8,6 +8,4 @@ This project will scrape and collect data :
 * Company Salary
 * Job type
 
-I rely on beautifulsoup4 and requests packages to complete this project.*
-
-
+I rely on beautifulsoup4 and requests packages to complete this project.
