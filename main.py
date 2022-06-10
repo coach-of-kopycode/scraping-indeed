@@ -98,15 +98,14 @@ def generate_file(dataframe, filename, location):
     df = pd.DataFrame(dataframe)
     df.to_csv(f'reports/{filename}_{location}.csv', index=False)
     df.to_excel(f'reports/{filename}_{location}.xlsx', index=False)
-    print(f'File {filename}.csv and {filename}.xlsx successfully created')
+    print(f'File {filename}_{location}.csv and {filename}_{location}.xlsx successfully created')
 
 
 def run():
     # input
     query = input('Input query : ')
     location = input('Input location : ')
-
-    get_total_pages(query, location)
+    total = get_total_pages(query, location)
 
     counter = 0
     final_result = []
